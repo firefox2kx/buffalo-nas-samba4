@@ -1,0 +1,22 @@
+Patch for /etc/init.d/smb.sh on the Buffalo NAS.
+
+Adds four sed injections immediately after nas_configgen in the configure()
+function.  nas_configgen is a closed-source binary that regenerates smb.conf
+from /etc/melco/ parameters; these injections fix up the generated file for
+Samba 4.1.23 before smbd starts.
+
+Apply with:
+    patch -p1 /etc/init.d/smb.sh < smb.sh.patch
+
+--- a/etc/init.d/smb.sh
++++ b/etc/init.d/smb.sh
+@@ -53,6 +53,12 @@ configure()
+ 	if [ $? -ne 0 ]; then
+ 		echo "$0 configure fail"
+ 		exit 1
+ 	fi
++	/bin/sed -i '3i\\    max protocol = SMB3\\' /etc/samba/smb.conf
++	/bin/sed -i '4i\\    pid directory = /var/run\\' /etc/samba/smb.conf
++	/bin/sed -i 's|passdb backend = tdbsam:/etc/samba/smbpasswd.tdb|passdb backend = tdbsam:/var/lib/samba/private/smbpasswd.tdb|' /etc/samba/smb.conf
++	/bin/sed -i '/force.*mode/d' /etc/samba/smb.conf
+ }

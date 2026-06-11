@@ -1,0 +1,21 @@
+Patch for /etc/nsswitch.conf on the Buffalo NAS.
+
+Removes winbind from passwd/group/shadow lookups.  winbindd is not started
+in a standalone Samba setup; if winbind remains in nsswitch.conf, every
+user/group lookup (including by smbd itself) tries to connect to the
+winbind socket, which does not exist, causing repeated reconnect attempts
+that pin one CPU core at ~100%.
+
+Apply with:
+    patch -p1 /etc/nsswitch.conf < nsswitch.conf.patch
+
+--- a/etc/nsswitch.conf
++++ b/etc/nsswitch.conf
+@@ -1,6 +1,6 @@
+ hosts:   files dns wins
+-passwd:  files winbind
+-group:   files winbind
+-shadow:  files winbind
++passwd:  files
++group:   files
++shadow:  files

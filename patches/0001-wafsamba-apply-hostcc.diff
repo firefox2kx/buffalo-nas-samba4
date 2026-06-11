@@ -1,0 +1,32 @@
+Add apply_hostcc feature to samba_optimisation.py so that targets marked
+samba_use_hostcc=True are compiled with the native host compiler instead of
+the cross-compiler.  This is required for build-time tools (asn1_compile,
+compile_et) that must run on the build host during the cross-compilation.
+
+--- a/buildtools/wafsamba/samba_optimisation.py
++++ b/buildtools/wafsamba/samba_optimisation.py
+@@ -7,6 +7,24 @@
+ from TaskGen import feature, after, before
+ import preproc, Task, Utils
+
++
++@feature('cc')
++@before('apply_type_vars', 'apply_lib_vars', 'apply_core')
++def apply_hostcc(self):
++    '''switch to native host CC for targets flagged with samba_use_hostcc=True'''
++    if not getattr(self, 'samba_use_hostcc', False):
++        return
++    hostcc = self.env.get_flat('HOSTCC')
++    if not hostcc:
++        return
++    self.env = self.env.copy()
++    hostcc_list = Utils.to_list(hostcc)
++    self.env['CC'] = hostcc_list
++    self.env['LINK_CC'] = hostcc_list
++    # strip all cross-compile flags; host tools must build for x86_64
++    self.env['CCFLAGS'] = []
++    self.env['LINKFLAGS'] = []
++
+ @feature('cc', 'cxx')
+ @after('apply_type_vars', 'apply_lib_vars', 'apply_core')
+ def apply_incpaths(self):
