@@ -2,3 +2,4 @@ compat/*.o
 compat/libisoc99_compat.a
 *.log
 *.bak
+/tmp/

@@ -34,47 +34,45 @@ likely work with the same build.
 | `scripts/deploy.sh` | Automated deployment over SSH |
 | `docs/` | Build guide, deployment guide, NAS internals reference |
 
-## Quick start
+## Quick start — pre-built binary (recommended)
 
-### Prerequisites
-
-```sh
-apt-get install gcc-arm-linux-gnueabi binutils-arm-linux-gnueabi \
-                qemu-user-static python3 pkg-config libgnutls28-dev sshpass
-```
-
-Download Samba 4.1.23:
+No cross-compilation required.  The repo includes a pre-built binary tarball
+for armv5te / glibc 2.5.
 
 ```sh
-wget https://download.samba.org/pub/samba/stable/samba-4.1.23.tar.gz
-tar xzf samba-4.1.23.tar.gz
+apt-get install sshpass
+git clone https://github.com/<user>/buffalo-nas-samba4
+cd buffalo-nas-samba4
+./scripts/deploy-prebuilt.sh <NAS_IP> root
 ```
 
-Prepare a sysroot from your NAS (see [docs/BUILD.md](docs/BUILD.md)):
-
-```sh
-rsync -a root@<NAS_IP>:/lib     ~/build/nas-sysroot/
-rsync -a root@<NAS_IP>:/usr/lib ~/build/nas-sysroot/usr/
-```
-
-### Build
-
-```sh
-./scripts/build.sh ~/build/samba-src/samba-4.1.23 ~/build/nas-sysroot
-```
-
-### Deploy
-
-```sh
-./scripts/deploy.sh <NAS_IP> root ~/build/samba-src/samba-4.1.23
-```
-
-### Verify
+Verify:
 
 ```sh
 nmap -p 445 --script smb2-security-mode <NAS_IP>
 # smb2-security-mode: 2.02  ← SMB2/3 active
 ```
+
+## Quick start — build from source
+
+If you want to rebuild from source (e.g. for a different glibc version):
+
+```sh
+apt-get install gcc-arm-linux-gnueabi binutils-arm-linux-gnueabi \
+                qemu-user-static python3 pkg-config libgnutls28-dev sshpass
+
+wget https://download.samba.org/pub/samba/stable/samba-4.1.23.tar.gz
+tar xzf samba-4.1.23.tar.gz
+
+# Prepare sysroot from NAS
+rsync -a root@<NAS_IP>:/lib     ~/build/nas-sysroot/
+rsync -a root@<NAS_IP>:/usr/lib ~/build/nas-sysroot/usr/
+
+./scripts/build.sh ~/build/samba-src/samba-4.1.23 ~/build/nas-sysroot
+./scripts/deploy.sh <NAS_IP> root ~/build/samba-src/samba-4.1.23
+```
+
+See [docs/BUILD.md](docs/BUILD.md) for the full step-by-step guide.
 
 ## Key technical challenges solved
 
