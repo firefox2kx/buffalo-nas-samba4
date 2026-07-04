@@ -7,6 +7,11 @@
 # regardless of where it was cross-compiled.
 #
 # Install: cp smbd /usr/local/sbin/smbd && chmod +x /usr/local/sbin/smbd
+#
+# /var/run is a tmpfs wiped on every reboot. smbd needs
+# /var/run/samba/ncalrpc to exist for its RPC pipe, otherwise it exits
+# immediately with "Failed to create pipe directory" and no process survives.
+mkdir -p /var/run/samba/ncalrpc
 export LD_LIBRARY_PATH=/usr/local/samba4/lib:/usr/local/samba4/lib/private
 exec /usr/local/samba4/sbin/smbd \
     -s /etc/samba/smb.conf \
